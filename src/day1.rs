@@ -1,8 +1,8 @@
-use util::input_uint;
+use crate::input_uint;
 
-pub fn part1() -> String {
+pub fn a() -> String {
     let nums = input_uint("../input/day1");
-    let mut res: u64 = 0;
+    let mut res = 0;
     'search: for (i, n1) in nums.iter().enumerate() {
         for n2 in &nums[i + 1..] {
             if n1 + n2 == 2020 {
@@ -14,9 +14,9 @@ pub fn part1() -> String {
     return res.to_string();
 }
 
-pub fn part2() -> String {
+pub fn b() -> String {
     let nums = input_uint("../input/day1");
-    let mut res: u64 = 0;
+    let mut res = 0;
     'search: for (i, n1) in nums.iter().enumerate() {
         for (i2, n2) in nums[i + 1..].iter().enumerate() {
             let n12 = n1 + n2;
