@@ -9,6 +9,7 @@ fn read_input<T: FromStr>(path: &str) -> Vec<T> {
         .expect("error reading file")
         .trim()
         .split('\n')
-        .filter_map(|x| x.parse::<T>().ok())
+        .map(|x| x.parse::<T>().ok().unwrap())
+        //.filter_map(|x| x.parse::<T>().ok())
         .collect()
 }
