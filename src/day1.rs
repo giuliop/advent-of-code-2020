@@ -1,7 +1,7 @@
-use crate::input_uint;
+use crate::read_input;
 
 pub fn a() -> String {
-    let nums = input_uint("../input/day1");
+    let nums = read_input::<usize>("../input/day1");
     let mut res = 0;
     'search: for (i, n1) in nums.iter().enumerate() {
         for n2 in &nums[i + 1..] {
@@ -15,7 +15,7 @@ pub fn a() -> String {
 }
 
 pub fn b() -> String {
-    let nums = input_uint("../input/day1");
+    let nums = read_input::<usize>("../input/day1");
     let mut res = 0;
     'search: for (i, n1) in nums.iter().enumerate() {
         for (i2, n2) in nums[i + 1..].iter().enumerate() {
