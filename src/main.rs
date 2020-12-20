@@ -3,6 +3,7 @@ use advent2020::day2;
 use advent2020::day3;
 use advent2020::day4;
 use advent2020::day5;
+use advent2020::day6;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -18,6 +19,8 @@ fn main() {
         "4b" => day4::b(),
         "5a" => day5::a(),
         "5b" => day5::b(),
+        "6a" => day6::a(),
+        "6b" => day6::b(),
         "None" => "Please supply a problem".to_string(),
         _ => "Not solved yet".to_string(),
     };
