@@ -37,7 +37,7 @@ fn sum_bags_contained(maybe_bags: Option<&Bags>, rules: &Rules) -> usize {
         None => 0,
         Some(bags) => bags
             .iter()
-            .map(|x| x.1 + x.1 * sum_bags_contained(rules.get(&x.0), &rules))
+            .map(|x| x.1 * (1 + sum_bags_contained(rules.get(&x.0), &rules)))
             .sum(),
     }
 }
