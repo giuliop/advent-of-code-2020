@@ -25,6 +25,23 @@ fn can_ultimately_contain(bag: &str, rules: &Rules, end_bag: &str) -> bool {
         .any(|x| x.0 == end_bag || can_ultimately_contain(&x.0, rules, end_bag))
 }
 
+pub fn b() -> String {
+    let rules = rules();
+    let start_bag = "shiny gold";
+    let maybe_bags = rules.get(start_bag);
+    sum_bags_contained(maybe_bags, &rules).to_string()
+}
+
+fn sum_bags_contained(maybe_bags: Option<&Bags>, rules: &Rules) -> usize {
+    match maybe_bags {
+        None => 0,
+        Some(bags) => bags
+            .iter()
+            .map(|x| x.1 + x.1 * sum_bags_contained(rules.get(&x.0), &rules))
+            .sum(),
+    }
+}
+
 fn rules() -> Rules {
     let mut rules = HashMap::new();
     fs::read_to_string("../input/day7")
@@ -51,10 +68,6 @@ fn parse_rule(rule: &str) -> (String, Bags) {
         .map(|cap| (cap[2].to_string(), cap[1].parse::<usize>().unwrap()))
         .collect();
     (name, contains)
-}
-
-pub fn b() -> String {
-    "".to_string()
 }
 
 #[cfg(test)]
