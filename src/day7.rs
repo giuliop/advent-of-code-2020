@@ -3,43 +3,26 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 
-type Bag = Vec<(String, usize)>;
+type Bags = Vec<(String, usize)>;
 
-type Rules = HashMap<String, Bag>;
+type Rules = HashMap<String, Bags>;
 
 pub fn a() -> String {
     let rules = rules();
-    let mut contains_gold_bag: HashMap<String, bool> = HashMap::new();
+    let end_bag = "shiny gold";
     rules
         .keys()
-        .fold(0, |acc, name| {
-            if can_contain_gold_bag(name, &rules, &mut contains_gold_bag) {
-                acc + 1
-            } else {
-                acc
-            }
-        })
+        .filter(|x| can_ultimately_contain(x, &rules, end_bag))
+        .count()
         .to_string()
 }
 
-fn can_contain_gold_bag(
-    bag: &str,
-    rules: &Rules,
-    contains_gold_bag: &mut HashMap<String, bool>,
-) -> bool {
-    match contains_gold_bag.get(bag) {
-        Some(true) => true,
-        Some(false) => false,
-        None => {
-            let bags = &rules.get(bag).unwrap();
-            let can = bags.iter().any(|x| x.0 == "shiny gold")
-                || bags
-                    .iter()
-                    .any(|x| can_contain_gold_bag(&x.0, rules, contains_gold_bag));
-            contains_gold_bag.insert(bag.to_string(), can);
-            can
-        }
-    }
+fn can_ultimately_contain(bag: &str, rules: &Rules, end_bag: &str) -> bool {
+    rules
+        .get(bag)
+        .unwrap()
+        .iter()
+        .any(|x| x.0 == end_bag || can_ultimately_contain(&x.0, rules, end_bag))
 }
 
 fn rules() -> Rules {
@@ -55,7 +38,7 @@ fn rules() -> Rules {
     rules
 }
 
-fn parse_rule(rule: &str) -> (String, Bag) {
+fn parse_rule(rule: &str) -> (String, Bags) {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"(\d) (.+?) bag").unwrap();
     }
