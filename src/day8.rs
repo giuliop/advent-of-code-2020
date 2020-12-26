@@ -1,4 +1,4 @@
-use ::std::collections::HashSet;
+use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::fs;
 use std::num::ParseIntError;
@@ -31,19 +31,25 @@ impl From<ParseIntError> for CompilationError {
     }
 }
 
-type Parameter = isize;
-type Instruction = (Op, Parameter);
+type Bitsize = isize;
+type Instruction = (Op, Bitsize);
+
+#[derive(Debug)]
+enum State {
+    InfiniteLoop,
+    Exited,
+    ComputationError(String),
+}
 
 struct Computer {
     pc: usize,
-    acc: Parameter,
+    acc: Bitsize,
     program: Vec<Instruction>,
 }
 
 impl Computer {
     fn from_program(s: &str) -> Result<Self, CompilationError> {
         let program = Self::compile(s)?;
-        //println!("{:?}", program);
         Ok(Self {
             pc: 0,
             acc: 0,
@@ -57,7 +63,7 @@ impl Computer {
                 let mut words = x.split(' ');
                 Ok((
                     op_from(words.next().unwrap_or_default())?,
-                    words.next().unwrap().parse::<Parameter>()?,
+                    words.next().unwrap().parse::<Bitsize>()?,
                 ))
             })
             .collect()
@@ -65,26 +71,48 @@ impl Computer {
 
     fn step(&mut self) {
         let (op, p) = self.program[self.pc];
-        self.pc += 1;
         self.execute(op, p);
     }
 
-    fn execute(&mut self, op: Op, p: Parameter) {
+    fn execute(&mut self, op: Op, p: Bitsize) {
         match op {
             Op::Acc => self.acc += p,
             Op::Jmp => {
-                self.pc -= 1;
-                self.pc_add(p)
+                self.pc_add(p);
+                return;
             }
             Op::Nop => (),
         }
+        self.pc += 1;
     }
 
-    fn pc_add(&mut self, p: Parameter) {
+    fn pc_add(&mut self, p: Bitsize) {
         if p >= 0 {
             self.pc += usize::try_from(p).unwrap();
         } else {
             self.pc -= usize::try_from(-p).unwrap();
+        }
+    }
+
+    fn run(&mut self) -> (State, Bitsize) {
+        let mut seen = HashSet::new();
+        loop {
+            match self.pc {
+                x if x > self.program.len() => {
+                    return (
+                        State::ComputationError(
+                            "Program Counter too large!".to_string(),
+                        ),
+                        self.acc,
+                    )
+                }
+                x if x == self.program.len() => return (State::Exited, self.acc),
+                x if seen.contains(&x) => return (State::InfiniteLoop, self.acc),
+                _ => {
+                    seen.insert(self.pc);
+                    self.step()
+                }
+            }
         }
     }
 }
@@ -96,12 +124,8 @@ pub fn a() -> String {
             .trim(),
     )
     .unwrap();
-    let mut seen = HashSet::new();
-    while !seen.contains(&computer.pc) {
-        seen.insert(computer.pc);
-        computer.step();
-    }
-    computer.acc.to_string()
+    let (_, out) = computer.run();
+    out.to_string()
 }
 
 pub fn b() -> String {
