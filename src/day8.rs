@@ -115,19 +115,47 @@ impl Computer {
             }
         }
     }
+    fn reset(&mut self) {
+        self.pc = 0;
+        self.acc = 0;
+    }
 }
 
-pub fn a() -> String {
-    let mut computer = Computer::from_program(
+fn load_input() -> Computer {
+    Computer::from_program(
         fs::read_to_string("../input/day8")
             .expect("error reading file")
             .trim(),
     )
-    .unwrap();
+    .unwrap()
+}
+
+pub fn a() -> String {
+    let mut computer = load_input();
     let (_, out) = computer.run();
     out.to_string()
 }
 
 pub fn b() -> String {
-    "".to_string()
+    let mut computer = load_input();
+    for i in 0..computer.program.len() {
+        let original_op = computer.program[i].0;
+        {
+            let op = &mut computer.program[i].0;
+            match op {
+                Op::Jmp => *op = Op::Nop,
+                Op::Nop => *op = Op::Jmp,
+                Op::Acc => (),
+            }
+        }
+        let (state, out) = computer.run();
+        match state {
+            State::Exited => return out.to_string(),
+            _ => {
+                computer.program[i].0 = original_op;
+                computer.reset();
+            }
+        }
+    }
+    "No answer found".to_string()
 }
