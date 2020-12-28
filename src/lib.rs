@@ -10,6 +10,7 @@ pub mod day5;
 pub mod day6;
 pub mod day7;
 pub mod day8;
+pub mod day9;
 
 fn read_input<T: FromStr>(filename: &str) -> Vec<T> {
     fs::read_to_string(filename)
@@ -21,7 +22,10 @@ fn read_input<T: FromStr>(filename: &str) -> Vec<T> {
         .collect()
 }
 
-fn read_input_world<'a, T: Copy>(filename: &str, legend: &'a HashMap<char, T>) -> Vec<Vec<T>> {
+fn read_input_world<'a, T: Copy>(
+    filename: &str,
+    legend: &'a HashMap<char, T>,
+) -> Vec<Vec<T>> {
     fs::read_to_string(filename)
         .expect("error reading file")
         .trim()
