@@ -69,25 +69,3 @@ fn parse_rule(rule: &str) -> (String, Bags) {
         .collect();
     (name, contains)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_rule() {
-        let rule = "dotted salmon bags contain 2 dark lavender bags, 1 muted red bag, 1 vibrant magenta bag.";
-
-        let (name, bag) = parse_rule(rule);
-        assert_eq!(name, "dotted salmon".to_string());
-        assert_eq!(
-            bag.contains,
-            vec![
-                ("dark lavender".to_string(), 2usize),
-                ("muted red".to_string(), 1usize),
-                ("vibrant magenta".to_string(), 1usize)
-            ]
-        );
-        //assert_eq!(bag.can_contain_gold_bag, None);
-    }
-}
