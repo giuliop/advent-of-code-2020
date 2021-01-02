@@ -6,29 +6,22 @@ fn read_input_part1(path: &str) -> (usize, Vec<usize>) {
     let split = data.find('\n').unwrap();
     let time = data[..split].parse().unwrap();
     let buses = data[split + 1..]
-        .trim()
         .split(',')
-        .filter(|x| *x != "x")
-        .map(|x| x.parse().unwrap())
+        .filter_map(|x| x.parse().ok())
         .collect();
     (time, buses)
 }
 
 pub fn a() -> String {
     let (time, buses) = read_input_part1("../input/day13");
-    let times: Vec<usize> = buses
+
+    let (i, bus_time) = buses
         .iter()
-        .map(|x| {
-            let rem = time % x;
-            time + if rem == 0 { 0 } else { x - rem }
-        })
-        .collect();
-    let (i, bus_time) = times
-        .iter()
+        .map(|x| time + (x - (time % x)) % x)
         .enumerate()
-        .filter(|(_, &x)| x >= time)
         .min_by_key(|x| x.1)
         .unwrap();
+
     (buses[i] * (bus_time - time)).to_string()
 }
 
@@ -65,7 +58,7 @@ fn read_input_part2(path: &str) -> Vec<(usize, usize)> {
         .collect();
     data.iter()
         .filter(|(_, x)| *x != 0)
-        .map(|(i, x)| (((x - i % x) % x), *x))
+        .map(|(i, x)| (x - i % x, *x))
         .collect()
 }
 
