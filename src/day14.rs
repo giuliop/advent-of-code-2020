@@ -25,7 +25,7 @@ type MaskFn = fn(usize, usize) -> usize;
 #[derive(Default)]
 struct Computer {
     memory: HashMap<usize, usize>,
-    // vector of (bitwise operator, mask values)
+    // bitwise operator, mask value
     mask: Vec<(MaskFn, usize)>,
 }
 
@@ -89,7 +89,7 @@ pub fn b() -> String {
 #[derive(Default)]
 struct ComputerV2 {
     memory: HashMap<usize, usize>,
-    // 1,0: bit operation, bit value
+    // 1,0: bitwise operator, mask value
     mask: Vec<(MaskFn, usize)>,
     // X: bit position
     mask_x: Vec<usize>,
@@ -130,9 +130,7 @@ impl ComputerV2 {
                 .flat_map(|a| vec![a | (1 << m), a & !(1 << m)])
                 .collect()
         }
-        //dbg!(&masked_addr_before_x);
         for a in addresses {
-            //dbg!(&a);
             self.memory.insert(a, val);
         }
     }
