@@ -61,17 +61,3 @@ fn read_input_part2(path: &str) -> Vec<(usize, usize)> {
         .map(|(i, x)| (x - i % x, *x))
         .collect()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    //use std::env;
-
-    #[test]
-    fn test_part2() {
-        //let path = env::current_dir().unwrap();
-        //println!("The current directory is {}", path.display());
-        assert_eq!(b_helper("input/test2"), "3417");
-        assert_eq!(b_helper("input/test"), "1261476");
-    }
-}
