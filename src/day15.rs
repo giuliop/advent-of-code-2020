@@ -1,35 +1,29 @@
 use std::collections::HashMap;
 
-pub fn a() -> String {
-    let mut starting_nums = vec![7, 14, 0, 17, 11, 1, 2];
-    let total_turns = 2020;
+pub fn count(total_turns: usize) -> usize {
+    let mut starting_numbers = vec![7, 14, 0, 17, 11, 1, 2];
+    let next_turn = starting_numbers.len();
+    let mut last_number: usize = starting_numbers.pop().unwrap();
 
-    let mut last: usize = starting_nums.pop().unwrap();
-
-    let mut nums: HashMap<usize, usize> = starting_nums
+    let mut numbers: HashMap<usize, usize> = starting_numbers
         .iter()
         .enumerate()
-        .map(|(i, x)| (*x, i))
+        .map(|(i, x)| (*x, i + 1))
         .collect();
 
-    let turns_so_far = nums.keys().count();
-
-    for current_turn in turns_so_far..total_turns - 1 {
-        last = match nums.get(&last).cloned() {
-            Some(turn) => {
-                nums.insert(last, current_turn);
-                current_turn - turn
-            }
-            None => {
-                nums.insert(last, current_turn);
-                0
-            }
-        };
-        //println!("turn: {}, spoken: {}", current_turn + 1, last);
+    for current_turn in next_turn..total_turns {
+        let next_number =
+            current_turn - *numbers.get(&last_number).unwrap_or(&current_turn);
+        numbers.insert(last_number, current_turn);
+        last_number = next_number;
     }
-    last.to_string()
+    last_number
+}
+
+pub fn a() -> String {
+    count(2020).to_string()
 }
 
 pub fn b() -> String {
-    "".to_string()
+    count(30000000).to_string()
 }
