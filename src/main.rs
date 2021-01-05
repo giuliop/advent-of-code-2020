@@ -6,6 +6,7 @@ use advent2020::day13;
 use advent2020::day14;
 use advent2020::day15;
 use advent2020::day16;
+use advent2020::day17;
 use advent2020::day2;
 use advent2020::day3;
 use advent2020::day4;
@@ -51,6 +52,8 @@ fn main() {
         "15b" => day15::b(),
         "16a" => day16::a(),
         "16b" => day16::b(),
+        "17a" => day17::a(),
+        "17b" => day17::b(),
         "None" => "Please supply a problem".to_string(),
         _ => "Not solved yet".to_string(),
     };
