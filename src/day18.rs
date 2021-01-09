@@ -145,49 +145,37 @@ fn match_paren(s: &str) -> usize {
     idx
 }
 
-// Take string and index to start from and return next token and update index
-// at next unconsumed char
-fn next_token(s: &str, idx: &mut usize) -> Option<Token> {
-    let start = *idx;
-    if s.len() <= start {
-        return None;
-    }
-    match s[start..].chars().next().unwrap_or('\n') {
-        '(' => {
-            *idx += match_paren(&s[start..]) + 1;
-            Some(Token::Expr(tokenize(&s[start + 1..*idx - 1])))
-        }
-        '0'..='9' => {
-            *idx += s[start..]
-                .find(|x: char| !x.is_numeric())
-                .unwrap_or(s[start..].len())
-                + 1;
-            Some(Token::Num(s[start..*idx - 1].parse::<usize>().unwrap()))
-        }
-        '+' => {
-            *idx += 2;
-            Some(Token::Add)
-        }
-        '*' => {
-            *idx += 2;
-            Some(Token::Mul)
-        }
-        ' ' => {
-            *idx += 1;
-            next_token(s, idx)
-        }
-        '\n' => {
-            *idx += 1;
-            None
-        }
-        _ => unreachable!(),
-    }
-}
-
 fn tokenize(s: &str) -> Vec<Token> {
     let mut res = Vec::new();
     let mut idx = 0;
-    while let Some(token) = next_token(s, &mut idx) {
+    while idx < s.len() {
+        let start = idx;
+        let token = match s[start..].chars().next().unwrap() {
+            '(' => {
+                idx += match_paren(&s[start..]) + 1;
+                Token::Expr(tokenize(&s[start + 1..idx - 1]))
+            }
+            '0'..='9' => {
+                idx += s[start..]
+                    .find(|x: char| !x.is_numeric())
+                    .unwrap_or(s[start..].len())
+                    + 1;
+                Token::Num(s[start..idx - 1].parse::<usize>().unwrap())
+            }
+            '+' => {
+                idx += 2;
+                Token::Add
+            }
+            '*' => {
+                idx += 2;
+                Token::Mul
+            }
+            ' ' | '\n' => {
+                idx += 1;
+                continue;
+            }
+            _ => unreachable!(),
+        };
         res.push(token);
     }
     res
