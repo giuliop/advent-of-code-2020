@@ -1,24 +1,9 @@
 use std::fs;
-use std::mem;
 use std::ops::{Add, Mul};
 
 type Operation = fn(usize, usize) -> usize;
-type ParseFn = fn(&[Token]) -> Expr;
 
-#[derive(Debug)]
-struct Expr {
-    lhs: Operand,
-    op: Operation,
-    rhs: Operand,
-}
-
-#[derive(Debug)]
-enum Operand {
-    Num(usize),
-    Expr(Box<Expr>),
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Token {
     Num(usize),
     Add,
@@ -26,107 +11,54 @@ enum Token {
     Expr(Vec<Token>),
 }
 
-impl Expr {
-    fn from_str(s: &str, parse_fn: ParseFn) -> Self {
-        parse_fn(&tokenize(s)[..])
+fn solve_a(tokens: &[Token]) -> usize {
+    if tokens.is_empty() {
+        return 0;
     }
+    let mut reg: usize = 0;
+    let mut op: Operation = Add::add;
 
-    fn solve(&self) -> usize {
-        let lhs = match &self.lhs {
-            Operand::Num(n) => *n,
-            Operand::Expr(boxed) => boxed.solve(),
-        };
-        let rhs = match &self.rhs {
-            Operand::Num(n) => *n,
-            Operand::Expr(boxed) => boxed.solve(),
-        };
-        (self.op)(lhs, rhs)
+    for t in tokens {
+        match t {
+            Token::Add => op = Add::add,
+            Token::Mul => op = Mul::mul,
+            Token::Num(x) => reg = (op)(reg, *x),
+            Token::Expr(ts) => reg = (op)(reg, solve_a(&ts)),
+        }
     }
+    reg
 }
 
-fn parse_advanced(tokens: &[Token]) -> Expr {
-    let mut tokens = tokens;
-    if tokens.len() == 1 {
-        match &tokens[0] {
-            Token::Expr(ts) => tokens = &ts[..],
-            _ => unreachable!(),
-        }
-    }
-    let lhs: &[Token];
-    let rhs: &[Token];
-    let op: Operation;
-    match tokens
-        .iter()
-        .position(|x| mem::discriminant(x) == mem::discriminant(&Token::Mul))
-    {
-        Some(idx) => {
-            lhs = &tokens[..idx];
-            op = Mul::mul;
-            rhs = &tokens[idx + 1..];
-        }
-        None => {
-            let len = tokens.len();
-            lhs = &tokens[..len - 2];
-            op = Add::add;
-            rhs = &tokens[len - 1..];
-        }
-    }
-
-    let lhs = if lhs.len() == 1 {
-        if let Token::Num(n) = lhs[0] {
-            Operand::Num(n)
-        } else {
-            Operand::Expr(Box::new(parse_advanced(lhs)))
-        }
-    } else {
-        Operand::Expr(Box::new(parse_advanced(lhs)))
-    };
-
-    let rhs = if rhs.len() == 1 {
-        if let Token::Num(n) = rhs[0] {
-            Operand::Num(n)
-        } else {
-            Operand::Expr(Box::new(parse_advanced(rhs)))
-        }
-    } else {
-        Operand::Expr(Box::new(parse_advanced(rhs)))
-    };
-
-    Expr { lhs, op, rhs }
-}
-
-fn parse(tokens: &[Token]) -> Expr {
-    let mut tokens = tokens;
-    if tokens.len() == 1 {
-        match &tokens[0] {
-            Token::Expr(ts) => tokens = &ts[..],
-            _ => unreachable!(),
-        }
-    }
-    let len = tokens.len();
-    let lhs = &tokens[..len - 2];
-    let lhs = if lhs.len() == 1 {
-        if let Token::Num(n) = lhs[0] {
-            Operand::Num(n)
-        } else {
-            Operand::Expr(Box::new(parse(lhs)))
-        }
-    } else {
-        Operand::Expr(Box::new(parse(lhs)))
-    };
-    let op = match &tokens[len - 2] {
-        Token::Add => Add::add,
+fn op_from(t: &Token) -> Operation {
+    match t {
         Token::Mul => Mul::mul,
+        Token::Add => Add::add,
         _ => unreachable!(),
-    };
-    let rhs = &tokens[len - 1..];
-    let rhs = if let Token::Num(n) = rhs[0] {
-        Operand::Num(n)
-    } else {
-        Operand::Expr(Box::new(parse(rhs)))
-    };
+    }
+}
 
-    Expr { lhs, op, rhs }
+fn solve_b(tokens: &[Token]) -> usize {
+    match tokens.len() {
+        0 => 0,
+        1 => match &tokens[0] {
+            Token::Num(x) => *x,
+            Token::Expr(ts) => solve_b(&ts),
+            _ => unreachable!(),
+        },
+        3 => (op_from(&tokens[1]))(solve_b(&tokens[0..=0]), solve_b(&tokens[2..=2])),
+        n if n & 1 != 0 => match &tokens[1] {
+            Token::Mul => solve_b(&tokens[0..=0]) * solve_b(&tokens[2..]),
+            Token::Add => solve_b(&{
+                let mut v = vec![Token::Num(
+                    solve_b(&tokens[0..1]) + solve_b(&tokens[2..3]),
+                )];
+                v.extend_from_slice(&tokens[3..]);
+                v
+            }),
+            _ => unreachable!(),
+        },
+        _ => unreachable!(),
+    }
 }
 
 // return the position of closing matching parenthesis
@@ -185,7 +117,7 @@ pub fn a() -> String {
     fs::read_to_string("../input/day18")
         .expect("error reading file")
         .lines()
-        .map(|x| Expr::from_str(x, parse).solve())
+        .map(|x| solve_a(&tokenize(x)))
         .sum::<usize>()
         .to_string()
 }
@@ -194,21 +126,7 @@ pub fn b() -> String {
     fs::read_to_string("../input/day18")
         .expect("error reading file")
         .lines()
-        .map(|x| Expr::from_str(x, parse_advanced).solve())
+        .map(|x| solve_b(&tokenize(x)))
         .sum::<usize>()
         .to_string()
-}
-
-pub fn _debug() -> String {
-    let tokens: Vec<Vec<Token>> = fs::read_to_string("../input/test")
-        .expect("error reading file")
-        .lines()
-        .map(|x| tokenize(x))
-        .collect();
-    //dbg!(&tokens);
-
-    let ast: Vec<Expr> = tokens.iter().map(|x| parse_advanced(x)).collect();
-    //dbg!(&ast);
-
-    ast.iter().map(|x| x.solve()).sum::<usize>().to_string()
 }
