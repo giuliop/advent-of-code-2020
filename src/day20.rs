@@ -7,12 +7,16 @@ struct Side(usize);
 
 impl Side {
     fn from_str(s: &str) -> Self {
-        //assert!(s.len() == 10);
-        Side(s.chars().enumerate().fold(0, |acc, (i, c)| match c {
-            '#' => acc + (1 << i),
-            '.' => acc,
-            _ => unreachable!(),
-        }))
+        Side(
+            s.chars()
+                .enumerate()
+                .map(|(i, c)| match c {
+                    '#' => (1 << i),
+                    '.' => 0,
+                    _ => unreachable!(),
+                })
+                .sum(),
+        )
     }
 
     fn flip(&self) -> Self {
