@@ -1,48 +1,47 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 
 fn read_input(f: &str) -> (Vec<String>, HashMap<String, Vec<HashSet<String>>>) {
-    let list: Vec<(Vec<String>, HashSet<String>)> = fs::read_to_string(f)
+    let data: Vec<(Vec<String>, HashSet<String>)> = fs::read_to_string(f)
         .expect("error reading file")
         .lines()
         .map(|s| {
-            let mut split = s.split(" (contains ");
-            let ingredients = split
-                .next()
-                .unwrap()
-                .split_whitespace()
-                .map(|s| s.to_string())
-                .collect();
-            let allergens = split.next().unwrap();
-            let allergens = allergens[..allergens.len() - 1]
-                .split(", ")
-                .map(|s| s.to_string())
-                .collect();
-            (allergens, ingredients)
+            let raw = s.split(" (contains ").collect::<Vec<&str>>();
+            let (ingredients, allergens) = (raw[0], raw[1]);
+            (
+                allergens[..allergens.len() - 1]
+                    .split(", ")
+                    .map(|s| s.to_string())
+                    .collect(),
+                ingredients
+                    .split_whitespace()
+                    .map(|s| s.to_string())
+                    .collect(),
+            )
         })
         .collect();
-    let mut vec = Vec::new();
-    let mut map = HashMap::new();
 
-    for (allergens, ingredients) in list {
+    let mut all_ingredients = Vec::new();
+    let mut list = HashMap::new();
+
+    for (allergens, ingredients) in data {
         for allergen in allergens {
-            map.entry(allergen)
+            list.entry(allergen)
                 .and_modify(|e: &mut Vec<HashSet<String>>| {
                     e.push(ingredients.clone());
                 })
                 .or_insert(vec![ingredients.clone()]);
         }
         for ingredient in ingredients {
-            vec.push(ingredient);
+            all_ingredients.push(ingredient);
         }
     }
-    (vec, map)
+    (all_ingredients, list)
 }
 
 pub fn solution() -> (usize, Vec<String>) {
     let (ingredients, list) = read_input("../input/day21");
-    //dbg!(&list);
+
     let mut excluded_foods = list
         .iter()
         .map(|(k, v)| {
@@ -68,7 +67,6 @@ pub fn solution() -> (usize, Vec<String>) {
             set.retain(|e| !finalized.contains(e));
         }
     }
-    //dbg!(&excluded_foods);
 
     let mut excluded_foods = excluded_foods
         .iter()
@@ -76,11 +74,11 @@ pub fn solution() -> (usize, Vec<String>) {
         .collect::<Vec<(&str, &str)>>();
 
     excluded_foods.sort_unstable_by_key(|x| x.0);
+
     let excluded_foods = excluded_foods
         .iter()
         .map(|x| x.1.to_string())
         .collect::<Vec<String>>();
-    //dbg!(&excluded_foods);
 
     (
         ingredients
